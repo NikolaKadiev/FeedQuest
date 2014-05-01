@@ -73,7 +73,7 @@ public class Find extends HttpServlet {
 			e.printStackTrace();
 		}
     	
-       
+       int i;
         
  }
 	

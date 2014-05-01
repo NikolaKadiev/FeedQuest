@@ -1,33 +1,15 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
-<!-- above set at the top of the file will set     -->
-<!-- the browser's rendering engine into           -->
-<!-- "Quirks Mode". Replacing this declaration     -->
-<!-- with a "Standards Mode" doctype is supported, -->
-<!-- but may lead to some differences in layout.   -->
-
+<!DOCTYPE html>
 <html>
   <head>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js "></script>
-  <script>
-    $(document).ready(function()
-      {
-        $("#submit").click(function()
-          {
-            $(this).hide();
-
-          });
-      });
-
-  </script>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>NewsReader</title>
+   <meta charset="utf-8" />
+   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js "></script>
+   <title>NewsReader</title>
   </head>
 
   <body>
-	<form action="/find" method="post">
-	 <input type="text" name="searchText">
-	 <input id="submit" type="submit" name="submit" onclick="$(this).hide();">
-	</form>
+	 <form action="/find" method="post">
+	  <input type="url" id="urlInput"name="searchText" placeholder="Enter or paste URL here" autofocus required>
+	  <input id="submit" type="submit" name="submit" value="Search" ">
+	 </form>
   </body>
 </html>
