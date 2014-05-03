@@ -67,21 +67,21 @@ public class Find extends HttpServlet
 		
 	catch(JSONException e)
     {
-		loger.log(Level.SEVERE, "JSONException", e);
-		resp.sendRedirect("errorPage.html");
+    		loger.log(Level.SEVERE, "JSONException", e);
+    		resp.sendRedirect("errorPage.html");
     }
 		 
-    catch(ServletException e)
+    	catch(ServletException e)
     {
-    	loger.log(Level.SEVERE, "ServletException", e);
-    	resp.sendRedirect("errorPage.html");    
+    		loger.log(Level.SEVERE, "ServletException", e);
+    		resp.sendRedirect("errorPage.html");    
     }
 		 
 	catch(MalformedURLException e)
-	{
-		loger.log(Level.SEVERE, "MalformedUrl", e);
-		resp.sendRedirect("errorPage.html");	  
-	}
+    {
+    		loger.log(Level.SEVERE, "MalformedUrl", e);
+    		resp.sendRedirect("errorPage.html");	  
+    }
     	
     	
    }
