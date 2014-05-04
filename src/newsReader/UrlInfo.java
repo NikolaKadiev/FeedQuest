@@ -184,7 +184,7 @@ public class UrlInfo implements Serializable {
 	
 	/**
 	 * Connects to the Google Feeds API with a custom searchQuery containing the 3 most 
-	 * used word in the paragraphs of this HTML document.
+	 * used words in the paragraphs of this HTML document.
 	 * @param ipAddress User's IP address - required by the Google Feeds API
 	 * @return JSON object with the information about the returned  similar feeds
 	 * @throws IOException
