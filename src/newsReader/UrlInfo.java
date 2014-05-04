@@ -94,35 +94,35 @@ public class UrlInfo implements Serializable {
 		//select all paragraph elements from the document
 		for(Element paragraph : doc.getElementsByTag("p"))
 	        {
-			//split the paragraph into the containing words
+			    //split the paragraph into the containing words
 		    	String[] words = paragraph.text().split("[^a-zA-Z]+");
 		
-			for(String Word : words )
-		        {
-				String word = Word.toLowerCase();
+			    for(String Word : words )
+		        {	
+					String word = Word.toLowerCase();
 			 
-				//ignore the words that match the ones found in the StopList file
-				//this is done to eliminate too broad search results
-				//and get a precise searchQuery
-				if(!UrlInfo.isInStopList(word))
-				{
-					if(map.containsKey(word))
+					//ignore the words that match the ones found in the StopList file
+					//this is done to eliminate too broad search results
+					//and get a precise searchQuery
+					if(!UrlInfo.isInStopList(word))
 					{
-						//increase word count by 1
-						map.put(word, map.get(word) + 1);	
-					}
-					else
-					{	 
-						//enter the integer value (1) for the word count
-						//only executed the first time
-						//some word is entered in the map
-						map.put(word, new Integer(1));
-					}
-	                         }
-	    	         }
+						if(map.containsKey(word))
+						{
+							//increase word count by 1
+							map.put(word, map.get(word) + 1);	
+						}
+						else
+						{	 
+							//enter the integer value (1) for the word count
+							//only executed the first time
+							//some word is entered in the map
+							map.put(word, new Integer(1));
+						}
+	                }
+	    	    }
 		
-	         }
-	    
+	        }	
+	    	
 	    List<WordOccurence> wordsCount = new ArrayList<WordOccurence>();
 	  
 	    //enter each map entry(key,value) into its own WordOccurence object
@@ -147,7 +147,7 @@ public class UrlInfo implements Serializable {
 	 */
 	public static boolean isInStopList(String word)
 	
-        {
+    {
 		Set<String> stopWords = new LinkedHashSet<String>();
 		BufferedReader reader = null ;
 		String line= "";
@@ -166,8 +166,8 @@ public class UrlInfo implements Serializable {
 				}
 	     
 				reader.close();
-                        }
-                }
+            }
+        }		
         
 		catch(FileNotFoundException e)
 		{
@@ -180,7 +180,7 @@ public class UrlInfo implements Serializable {
     	 
 		return stopWords.contains(word) ?  true :  false;
 	  
-        }
+    }
 	
 	/**
 	 * Connects to the Google Feeds API with a custom searchQuery containing the 3 most 
@@ -213,7 +213,7 @@ public class UrlInfo implements Serializable {
 			}
 			i++;
     		
-                }
+        }
     	
 		//constructing the searchQuery
 		//with the static part of the url
