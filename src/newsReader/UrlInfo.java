@@ -95,7 +95,7 @@ public class UrlInfo implements Serializable {
 		for(Element paragraph : doc.getElementsByTag("p"))
 	        {
 			//split the paragraph into the containing words
-		    String[] words = paragraph.text().split("[^a-zA-Z]+");
+		    	String[] words = paragraph.text().split("[^a-zA-Z]+");
 		
 			for(String Word : words )
 		        {
