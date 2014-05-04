@@ -23,6 +23,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import newsReader.WordOccurence;
 
@@ -37,42 +39,46 @@ public class UrlInfo implements Serializable {
 	private String description = "";
 	private String keywords[];
 	private List<WordOccurence> sortedWords;
-	
+	private static final Logger loger = Logger.getLogger(Find.class.getName());
 	
 	public UrlInfo(String url)
 	{
 		Document doc;
 		
 		try 
-		{
+		{ 
+			
 			doc = Jsoup.connect(url).get();
 			this.title = doc.title();
-			
+			 //get all meta elements and loop through them
 			 for (Element node : doc.getElementsByTag("meta"))
 			 {
-				
+				//get description from description meta tag
 				if(node.attr("name").contains("description"))
 				 {
-				  this.description = node.attr("content");
+					this.description = node.attr("content");
 				 }
 				
+				//get keywords from keywords meta tag
+				//and fill the array using the split() function
 				if(node.attr("name").contains("keywords"))
 				 {
-				  String keywords[] = node.attr("content").split(",");
-				  this.keywords =  keywords;
+					String keywords[] = node.attr("content").split(",");
+					this.keywords =  keywords;
 				 } 
 			 }
 			 
 	       
 	       sortedWords =  this.keywordsOccurence(doc);
 	     
-	       
-	       
+	          
 		} 
-		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+			catch (IOException e) 
+		{	
+			loger.log(Level.SEVERE, "IOException", e);	
 		}
+		
 		
 		
         
@@ -87,127 +93,155 @@ public class UrlInfo implements Serializable {
 	{
 		
      HashMap<String, Integer> map = new HashMap<String, Integer>();
-		
+	 
+     //select all paragraph elements from the document
 	 for(Element paragraph : doc.getElementsByTag("p"))
 	  {
-		String[] words = paragraph.text().split("[^a-zA-Z]+");
+		 //split the paragraph into the containing words
+		 String[] words = paragraph.text().split("[^a-zA-Z]+");
 		
-		for(String Word : words )
+		 for(String Word : words )
 		 {
-	        String word = Word.toLowerCase();
-	        
-	        if(!UrlInfo.isInStopList(word))
-	      {
-			if(map.containsKey(word))
-			{
-			 map.put(word, map.get(word) + 1);	
-			}
-			else
-			{ 
-		     map.put(word, new Integer(1));
-			}
-	      }
+			 String word = Word.toLowerCase();
+			 
+	         //ignore the words that match the ones found in the StopList file
+			 //this is done to eliminate too broad search results
+			 //and get a precise searchQuery
+	         if(!UrlInfo.isInStopList(word))
+	         {
+	        	 if(map.containsKey(word))
+	        	 {
+	        		 //increase word count by 1
+	        		 map.put(word, map.get(word) + 1);	
+	        	 }
+	        	 else
+	        	 { 
+	        		 //enter the integer value (1) for the word count
+	        		 //only executed the first time
+	        		 //some word is entered in the map
+	        		 map.put(word, new Integer(1));
+	        	 }
+	         }
 		 }
 		
-	   }
-	 
-	    List<WordOccurence> wordsCount = new ArrayList<WordOccurence>();
-	 
-	    for(Map.Entry<String,Integer> entry : map.entrySet())
-	    {
-	     wordsCount.add(new WordOccurence(entry.getKey(),entry.getValue())); 
-	    }
-	 
-	    Collections.sort(wordsCount,Collections.reverseOrder());
+	  }
+	    
+	  List<WordOccurence> wordsCount = new ArrayList<WordOccurence>();
+	  
+	  //enter each map entry(key,value) into its own WordOccurence object
+	  //and insert the object into a list
+	  for(Map.Entry<String,Integer> entry : map.entrySet())
+	  {
+		  wordsCount.add(new WordOccurence(entry.getKey(),entry.getValue())); 
+	  }
+	  //Sort the list in descending order
+	  //Sorting is done by the integer value wordCount
+	  //of the WordOccurence object
+	  Collections.sort(wordsCount,Collections.reverseOrder());
 	    
 	 
-	    return wordsCount;
+	  return wordsCount;
 	}
-		
+	
+	/**
+	 * Checks if a given word is in the text file containing the words to be ignored.
+	 * @param word String to be checked
+	 * @return true if String is contained in the text file.
+	 */
 	public static boolean isInStopList(String word)
 	
   {
-	  Set<String> stopWords = new LinkedHashSet<String>();
-	  BufferedReader reader = null ;
-	  String line= "";
-      try
-      {
+   Set<String> stopWords = new LinkedHashSet<String>();
+   BufferedReader reader = null ;
+   String line= "";
+   try
+   {
 	   reader = new BufferedReader(new FileReader("stopWords.txt"));
-	  }
-	 
-	  catch(FileNotFoundException e)
-	  {
-	   e.getMessage();
-	  }
-     
+      
       if(reader != null)
       {
-	   try
-	    {
-	     while((line = reader.readLine()) != null )
-	     {
-	 	  stopWords.add(line.trim());
-	     }
+	      //add each word to the Set
+    	  //the file contains only one word per line
+    	  //so we add the whole line 
+    	  while((line = reader.readLine()) != null )
+    	  {
+    		  stopWords.add(line.trim());
+    	  }
 	     
-	     reader.close();
-        }
-	   
-	    catch(IOException e)
-	    {
-         e.getMessage();
-	    }
-     }
-	 
-	 return stopWords.contains(word) ?  true :  false;
+    	  reader.close();
+      }
+   }
+        
+   	catch(FileNotFoundException e)
+   {
+   		loger.log(Level.SEVERE, "FileNotFound", e);
+   }
+   	catch(IOException e)
+   {
+   		loger.log(Level.SEVERE, "IOException", e);
+   }
+    	 
+   return stopWords.contains(word) ?  true :  false;
 	  
   }
 	
-    public JSONObject searchFeeds(String ipAddress) throws IOException, JSONException
+	/**
+	 * Connects to the Google Feeds API with a custom searchQuery containing the 3 most 
+	 * used word in the paragraphs of this HTML document.
+	 * @param ipAddress User's IP address - required by the Google Feeds API
+	 * @return JSON object with the information about the returned  similar feeds
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+    public JSONObject getSimilarFeeds(String ipAddress) throws IOException, JSONException
     {
-    	StringBuilder searchQuery = new StringBuilder();
-    	int i = 0;
+     StringBuilder searchQuery = new StringBuilder();
+     int i = 0;
     	
+     //constructing the String with the keywords
+     //to be added to the searchQuery
+     for(WordOccurence word : sortedWords)
+     {
     	//only add the 3 first words of the sortedWords list to the searchQuery
-    	 for(WordOccurence word : sortedWords)
-    	 {
-    		 if(i == 3)
-    			 break;
+    	if(i == 3)
+    	  break;
     		
-    		 if(i == 0)
-    		 {
-    		  searchQuery.append(word.key);
-    		 }
-    		 else
-    		 {
-    		  searchQuery.append("%20" + word.key);
-    		 }
-    		  i++;
+    	if(i == 0)
+    	{
+    		searchQuery.append(word.key);
+        }
+    	else
+    	{
+    		searchQuery.append("%20" + word.key);
+    	}
+    	i++;
     		
-    	 }
+     }
     	
-    	
-    	URL url = new URL("https://ajax.googleapis.com/ajax/services/feed/find?v=1.0&q=" +
+     //constructing the searchQuery
+     //with the static part of the url
+     //and the keywords String we generated
+     URL googleFeedsUrl = new URL("https://ajax.googleapis.com/ajax/services/feed/find?v=1.0&q=" +
     			          searchQuery.toString() + "&userip=" + ipAddress );
     	
-    	URLConnection connection = url.openConnection();
-    	connection.setReadTimeout(10000);
+     URLConnection connection = googleFeedsUrl.openConnection();
+     connection.setReadTimeout(10000);
     	
-    	String line;
-    	StringBuilder builder = new StringBuilder();
-    	BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+     String line;
+     StringBuilder builder = new StringBuilder();
+     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+     	
+     while((line = reader.readLine()) != null)
+     {
+    	 builder.append(line);
+     }
     	
-    	while((line = reader.readLine()) != null)
-    	{
-    		builder.append(line);
-    	}
+     JSONObject json = new JSONObject(builder.toString());
     	
-    	JSONObject json = new JSONObject(builder.toString());
-    	
-    	return json;
-
-    	
-    	
+     return json;
+  	
     }
+    
 	public String getDescription() {
 		return description;
 	}
@@ -220,8 +254,6 @@ public class UrlInfo implements Serializable {
 	public String[] getKeywords() {
 		return keywords;
 	}
-	
-
 	
 
 }
