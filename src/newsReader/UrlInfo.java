@@ -44,7 +44,7 @@ public class UrlInfo implements Serializable
 
 	try
 	{
-
+        //get JSOUP HTML document
 	    doc = Jsoup.connect(url).get();
 	    this.title = doc.title();
 	    // get all meta elements and loop through them
@@ -60,11 +60,11 @@ public class UrlInfo implements Serializable
 		// and fill the array using the split() function
 		if (node.attr("name").contains("keywords"))
 		{
-		    String keywords[] = node.attr("content").split(",");
-		    this.keywords = keywords;
+		    this.keywords = node.attr("content").split(",");
 		}
 	    }
-
+        //populate the list with the words and their count in the opened
+		//jsoup document using WordOccurence objects
 	    sortedWords = this.keywordsOccurence(doc);
 
 	}
@@ -87,7 +87,7 @@ public class UrlInfo implements Serializable
     private List<WordOccurence> keywordsOccurence(Document doc)
     {
 
-	HashMap<String, Integer> map = new HashMap<String, Integer>();
+	HashMap<String, Integer> wordsMap = new HashMap<String, Integer>();
 
 	// select all paragraph elements from the document
 	for (Element paragraph : doc.getElementsByTag("p"))
@@ -97,6 +97,9 @@ public class UrlInfo implements Serializable
 
 	    for (String Word : words)
 	    {
+		//convert word to lowerCase 
+		//to avoid adding the same words with different case 
+		//more then once
 		String word = Word.toLowerCase();
 
 		// ignore the words that match the ones found in the StopList
@@ -105,16 +108,16 @@ public class UrlInfo implements Serializable
 		// and get a precise searchQuery
 		if (!UrlInfo.isInStopList(word))
 		{
-		    if (map.containsKey(word))
+		    if (wordsMap.containsKey(word))
 		    {
 			// increase word count by 1
-			map.put(word, map.get(word) + 1);
+			wordsMap.put(word, wordsMap.get(word) + 1);
 		    } else
 		    {
 			// enter the integer value (1) for the word count
 			// only executed the first time
 			// some word is entered in the map
-			map.put(word, new Integer(1));
+			wordsMap.put(word, new Integer(1));
 		    }
 		}
 	    }
@@ -125,7 +128,8 @@ public class UrlInfo implements Serializable
 
 	// enter each map entry(key,value) into its own WordOccurence object
 	// and insert the object into a list
-	for (Map.Entry<String, Integer> entry : map.entrySet())
+	//this is done so we can sort the list
+	for (Map.Entry<String, Integer> entry : wordsMap.entrySet())
 	{
 	    wordsCount.add(new WordOccurence(entry.getKey(), entry.getValue()));
 	}
