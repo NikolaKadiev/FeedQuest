@@ -44,7 +44,7 @@ public class UrlInfo implements Serializable
 
 	try
 	{
-        //get JSOUP HTML document
+	    // get JSOUP HTML document
 	    doc = Jsoup.connect(url).get();
 	    this.title = doc.title();
 	    // get all meta elements and loop through them
@@ -63,8 +63,8 @@ public class UrlInfo implements Serializable
 		    this.keywords = node.attr("content").split(",");
 		}
 	    }
-        //populate the list with the words and their count in the opened
-		//jsoup document using WordOccurence objects
+	    // populate the list with the words and their count in the opened
+	    // jsoup document using WordOccurence objects
 	    sortedWords = this.keywordsOccurence(doc);
 
 	}
@@ -88,18 +88,20 @@ public class UrlInfo implements Serializable
     {
 
 	HashMap<String, Integer> wordsMap = new HashMap<String, Integer>();
+	boolean docHaveParagraphs = false;
 
 	// select all paragraph elements from the document
 	for (Element paragraph : doc.getElementsByTag("p"))
 	{
+	    docHaveParagraphs = true;
 	    // split the paragraph into the containing words
 	    String[] words = paragraph.text().split("[^a-zA-Z]+");
 
 	    for (String Word : words)
 	    {
-		//convert word to lowerCase 
-		//to avoid adding the same words with different case 
-		//more then once
+		// convert word to lowerCase
+		// to avoid adding the same words with different case
+		// more then once
 		String word = Word.toLowerCase();
 
 		// ignore the words that match the ones found in the StopList
@@ -123,22 +125,29 @@ public class UrlInfo implements Serializable
 	    }
 
 	}
-
-	List<WordOccurence> wordsCount = new ArrayList<WordOccurence>();
-
-	// enter each map entry(key,value) into its own WordOccurence object
-	// and insert the object into a list
-	//this is done so we can sort the list
-	for (Map.Entry<String, Integer> entry : wordsMap.entrySet())
+	if (docHaveParagraphs)
 	{
-	    wordsCount.add(new WordOccurence(entry.getKey(), entry.getValue()));
-	}
-	// Sort the list in descending order
-	// Sorting is done by the integer value wordCount
-	// of the WordOccurence object
-	Collections.sort(wordsCount, Collections.reverseOrder());
+	    List<WordOccurence> wordsCount = new ArrayList<WordOccurence>();
 
-	return wordsCount;
+	    // enter each map entry(key,value) into its own WordOccurence object
+	    // and insert the object into a list
+	    // this is done so we can sort the list
+	    for (Map.Entry<String, Integer> entry : wordsMap.entrySet())
+	    {
+		wordsCount.add(new WordOccurence(entry.getKey(), entry
+			.getValue()));
+	    }
+	    // Sort the list in descending order
+	    // Sorting is done by the integer value wordCount
+	    // of the WordOccurence object
+	    Collections.sort(wordsCount, Collections.reverseOrder());
+
+	    return wordsCount;
+	} else
+	{
+	    List<WordOccurence> emptyList = Collections.emptyList();
+	    return emptyList;
+	}
     }
 
     /**
@@ -200,51 +209,57 @@ public class UrlInfo implements Serializable
     {
 	StringBuilder searchQuery = new StringBuilder();
 	int i = 0;
-
-	// constructing the String with the keywords
-	// to be added to the searchQuery
-	for (WordOccurence word : sortedWords)
+	if (!sortedWords.isEmpty())
 	{
-	    // only add the 3 first words of the sortedWords list to the
-	    // searchQuery
-	    if (i == 3)
-		break;
+	    // constructing the String with the keywords
+	    // to be added to the searchQuery
+	    for (WordOccurence word : sortedWords)
+	    {
+		// only add the 3 first words of the sortedWords list to the
+		// searchQuery
+		if (i == 3)
+		    break;
 
-	    if (i == 0)
-	    {
-		searchQuery.append(word.key);
-	    } else
-	    {
-		searchQuery.append("%20" + word.key);
+		if (i == 0)
+		{
+		    searchQuery.append(word.key);
+		} else
+		{
+		    searchQuery.append("%20" + word.key);
+		}
+		i++;
+
 	    }
-	    i++;
 
-	}
+	    // constructing the searchQuery
+	    // with the static part of the url
+	    // and the keywords String we generated
+	    URL googleFeedsUrl = new URL(
+		    "https://ajax.googleapis.com/ajax/services/feed/find?v=1.0&q="
+			    + searchQuery.toString() + "&userip=" + ipAddress);
 
-	// constructing the searchQuery
-	// with the static part of the url
-	// and the keywords String we generated
-	URL googleFeedsUrl = new URL(
-		"https://ajax.googleapis.com/ajax/services/feed/find?v=1.0&q="
-			+ searchQuery.toString() + "&userip=" + ipAddress);
+	    URLConnection connection = googleFeedsUrl.openConnection();
+	    connection.setReadTimeout(10000);
 
-	URLConnection connection = googleFeedsUrl.openConnection();
-	connection.setReadTimeout(10000);
+	    String line;
+	    StringBuilder builder = new StringBuilder();
+	    BufferedReader reader = new BufferedReader(new InputStreamReader(
+		    connection.getInputStream()));
 
-	String line;
-	StringBuilder builder = new StringBuilder();
-	BufferedReader reader = new BufferedReader(new InputStreamReader(
-		connection.getInputStream()));
+	    while ((line = reader.readLine()) != null)
+	    {
+		builder.append(line);
+	    }
 
-	while ((line = reader.readLine()) != null)
+	    JSONObject json = new JSONObject(builder.toString());
+
+	    return json;
+	} else
 	{
-	    builder.append(line);
+	    String message = "{errorMessage:['Document doesnt contain any paragraphs-Please only enter article type HTML site']}";
+	    JSONObject json = new JSONObject(message);
+	    return json;
 	}
-
-	JSONObject json = new JSONObject(builder.toString());
-
-	return json;
-
     }
 
     public String getDescription()
