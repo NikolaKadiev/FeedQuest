@@ -6,24 +6,27 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.ArrayList;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
+
 import newsReader.UrlInfo;
 
 import com.google.appengine.labs.repackaged.org.json.JSONArray;
 import com.google.appengine.labs.repackaged.org.json.JSONException;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
+import com.google.gson.Gson;
 
 @SuppressWarnings("serial")
 public class Find extends HttpServlet
 {
     private static final Logger loger = Logger.getLogger(Find.class.getName());
 
-    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+    public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	    throws IOException
     {
 
-	resp.setContentType("text/plain");
+	resp.setContentType("aplication/json");
 
 	// validate form input entered by the user
 	if (req.getParameter("searchText") != null
@@ -45,17 +48,29 @@ public class Find extends HttpServlet
 		// get the response data
 		JSONObject jsonObject = info.getSimilarFeeds(req
 			.getRemoteAddr());
-		JSONObject responseData = jsonObject
-			.getJSONObject("responseData");
-		JSONArray entries = responseData.getJSONArray("entries");
 
-		// loop through the entries array and get the url from each JSON
-		// object
-		// and add it to the links list
-		for (int i = 0; i < entries.length(); i++)
+		if (!jsonObject.has("errorMessage"))
 		{
-		    JSONObject obj = entries.getJSONObject(i);
-		    links.add(obj.getString("url"));
+		    JSONObject responseData = jsonObject
+			    .getJSONObject("responseData");
+		    JSONArray entries = responseData.getJSONArray("entries");
+
+		    // loop through the entries array and get the url from each
+		    // JSON
+		    // object
+		    // and add it to the links list
+		    for (int i = 0; i < entries.length(); i++)
+		    {
+			JSONObject obj = entries.getJSONObject(i);
+			links.add(obj.getString("url"));
+
+		    }
+		    String json = new Gson().toJson(links);
+		    resp.getWriter().write(json);
+		} else
+		{
+		    JSONArray array = jsonObject.getJSONArray("errorMessage");
+		    resp.getWriter().write(array.toString());
 		}
 
 		req.setAttribute("FeedLinks", links);
@@ -63,7 +78,7 @@ public class Find extends HttpServlet
 		HttpSession session = req.getSession();
 		session.setAttribute("FeedLinks", links);
 		session.setAttribute("UrlInfo", info);
-		req.getRequestDispatcher("viewLinks.jsp").forward(req, resp);
+
 
 	    }
 
@@ -73,12 +88,10 @@ public class Find extends HttpServlet
 		resp.sendRedirect("errorPage.html");
 	    }
 
-	    catch (ServletException e)
-	    {
-		loger.log(Level.SEVERE, "ServletException", e);
-		resp.sendRedirect("errorPage.html");
-	    }
-
+	    /**
+	     * catch (ServletException e) { loger.log(Level.SEVERE,
+	     * "ServletException", e); resp.sendRedirect("errorPage.html"); }
+	     **/
 	    catch (MalformedURLException e)
 	    {
 		loger.log(Level.SEVERE, "MalformedUrl", e);
