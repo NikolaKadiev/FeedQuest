@@ -12,15 +12,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.mortbay.util.ajax.JSON;
+
+import com.google.appengine.labs.repackaged.org.json.JSONArray;
+import com.google.appengine.labs.repackaged.org.json.JSONException;
+import com.google.appengine.labs.repackaged.org.json.JSONObject;
+import com.google.gson.JsonObject;
+
 public class ProcessContent extends HttpServlet
 {
 
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("unchecked")
-    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+    public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	    throws IOException
     {
+	resp.setContentType("aplication/json");
 	PrintWriter writer = resp.getWriter();
 
 	FeedParser parser = new FeedParser();
@@ -37,8 +45,9 @@ public class ProcessContent extends HttpServlet
 	{
 
 	    results = parser.getFeedEntries(link);
-
-	    for (WordOccurence wo : sortByContent(results, info))
+	    ArrayList<WordOccurence> linksOrderedByMatchingKeywords = sortByContent(
+		    results, info);
+	    for (WordOccurence wo : linksOrderedByMatchingKeywords)
 	    {
 		links.add(wo);
 	    }
@@ -47,15 +56,24 @@ public class ProcessContent extends HttpServlet
 
 	Collections.sort(links, Collections.reverseOrder());
 
+	JSONArray linksArray = new JSONArray();
 	for (WordOccurence wo : links)
 	{
-	    if (wo.count > 0)
+
+	    if (wo.count > 3)
 	    {
-		writer.println(wo.key);
-		writer.println("<br/>");
-		writer.println(wo.count);
+
+		linksArray.put(wo.key);
+
 	    }
+	    /**
+	     * writer.println(wo.key); writer.println("<br/>
+	     * "); writer.println(wo.count);
+	     **/
+
 	}
+
+	resp.getWriter().write(linksArray.toString());
 
     }
 
