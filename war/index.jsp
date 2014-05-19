@@ -10,135 +10,13 @@
 <head>
 <meta charset="utf-8" />
 <script type="text/javascript"
-	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js ">
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js "></script>
 	
-</script>
-<script>
-	$(document).ready(function() {
-		$("#urlInputFormSubmitButton").click(function() {
-			var text = $("#inputUrl").val();
-			$.ajax({
-				url : "/find",
-				type : "get",
-				data : {
-					searchText : text
-				},
-				success : function(jsonResponse) {
-					$("#feedList").empty();
-					var $ul = $('<ul>').appendTo($('#feedList'));
-					$.each(jsonResponse, function(index, item) {
-						$('<li>').text(item).appendTo($ul);
-					});
-				},
-				error : function(xhr) {
-					alert("Error");
-				}
+<script src="main.js"></script>
 
-			});
-		});
-
-		$("#searchFeedsButton").click(function() {
-			$("#searchResults").empty();
-
-			$.ajax({
-				url : "/processContent",
-				type : "get",
-				success : function(jsonResponse) {
-					var $ul = $('<ul>').appendTo($('#searchResults'));
-					$.each(jsonResponse, function(index, item) {
-						var $li = $('<li>').text(item).appendTo($ul);
-						var link = $("<a>").appendTo($li);
-						link.text("Open link");
-						link.attr("href", item);
-					});
-
-				},
-				error : function() {
-					alert("Error");
-				}
-
-			});
-
-		});
-
-	});
-</script>
-
+<link rel="stylesheet" type="text/css" href="style.css">
 <title>NewsReader</title>
-<style type="text/css">
-#signInLink {
-	font-size: 20px;
-	font-style: italic;
-}
 
-#signInMessage {
-	font-size: large;
-	padding-top: 3em;
-}
-
-.signedIn {
-	font-size: large;
-	padding-top: 3em;
-}
-
-div.centre {
-	width: 40%;
-	height: 20%;
-	min-width: 320px;
-	min-height: 200px;
-	margin: auto;
-	background-color: #00ac77;
-	text-align: center;
-}
-
-}
-div.child {
-	position: relative;
-	margin: auto;
-	min-width: 400px;
-	min-height: 200px;
-}
-
-div.feedList {
-	max-width: 800px;
-}
-
-div.searcResults {
-	max-width: 800px;
-}
-
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-}
-
-li {
-	font: 200 20px/1.5 Helvetica, Verdana, sans-serif;
-	border-bottom: 1px solid #ccc;
-}
-
-li:last-child {
-	border: none;
-}
-
-li a {
-	text-decoration: none;
-	color: #000;
-	-webkit-transition: font-size 0.3s ease, background-color 0.3s ease;
-	-moz-transition: font-size 0.3s ease, background-color 0.3s ease;
-	-o-transition: font-size 0.3s ease, background-color 0.3s ease;
-	-ms-transition: font-size 0.3s ease, background-color 0.3s ease;
-	transition: font-size 0.3s ease, background-color 0.3s ease;
-	display: block;
-	width: 200px;
-}
-
-li a:hover {
-	font-size: 30px;
-	background: #f6f6f6;
-}
-</style>
 </head>
 
 <body>
@@ -157,7 +35,7 @@ li a:hover {
 			</p>
 			<script>
 				$(document).ready(function() {
-					$("#urlInputForm").css("display", "block");
+					$("#urlInputArea").css("display", "block");
 				});
 			</script>
 
@@ -175,11 +53,11 @@ li a:hover {
 			    }
 			%>
 
-			<div id="urlInputForm" style="display: none;">
+			<div id="urlInputArea" style="display: none;">
 				<input id="inputUrl" type="url"
-					placeholder="Enter or paste URL here" autofocus required> <input
-					id="urlInputFormSubmitButton" type="submit" name="submit"
-					value="Search">
+					placeholder="Enter or paste URL here..." autofocus required> <button
+					id="urlInputAreaSubmitButton" type="submit" name="submit" >SEARCH</button>
+					
 			</div>
 
 
@@ -187,8 +65,8 @@ li a:hover {
 
 	</div>
 	<div>
-		<div id="feedList">Default text</div>
-		<input id="searchFeedsButton" type="submit" value="SearchFeeds">
+		<div id="feedList"></div>
+		<button id="searchFeedsButton" type="submit" style="display: none;">search</button>
 	</div>
 	<div id="searchResults"></div>
 </body>
