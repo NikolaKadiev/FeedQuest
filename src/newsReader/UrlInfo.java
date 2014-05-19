@@ -225,7 +225,7 @@ public class UrlInfo implements Serializable
 		    searchQuery.append(word.key);
 		} else
 		{
-		    searchQuery.append("%20" + word.key);
+		    searchQuery.append("%20" + word.key
 		}
 		i++;
 

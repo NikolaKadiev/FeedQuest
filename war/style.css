@@ -1,0 +1,192 @@
+body{
+background-color : #DDD;
+}
+
+#signInLink {
+	font-size: 20px;
+	font-style: italic;
+}
+
+#signInMessage {
+	font-size: large;
+	padding-top: 3em;
+}
+
+.signedIn {
+	font-size: large;
+	padding-top: 3em;
+}
+
+div.centre {
+	width: 40%;
+	height: 20%;
+	min-width: 450px;
+	max-width: 450px;
+	min-height: 200px;
+	margin: auto;
+	background-color: #00ac77;
+	text-align: center;
+}
+
+}
+div.child {
+	position: relative;
+	margin: auto;
+	min-width: 400px;
+	min-height: 200px;
+}
+
+div.feedList {
+
+}
+
+div.searcResults {
+
+}
+
+#urlInputArea {
+    min-width: 450px;
+    background: #444;
+    background: rgba(0,0,0,.2);
+    border-radius: 10px;
+    
+}
+ 
+/* Form text input */
+ 
+#urlInputArea input {
+    width: 330px;
+    height: 20px;
+    padding: 10px 5px;
+    float: left;   
+    font: bold 15px 'lucida sans', 'trebuchet MS', 'Tahoma';
+    border: 0;
+    background: #eee;
+    border-radius: 3px 0 0 3px;     
+}
+ 
+#urlInputArea input:focus {
+    outline: 0;
+    background: #fff;
+   
+}
+ 
+#urlInputArea input::-webkit-input-placeholder {
+   color: #999;
+   font-weight: normal;
+   font-style: italic;
+}
+ 
+#urlInputArea input:-moz-placeholder {
+    color: #999;
+    font-weight: normal;
+    font-style: italic;
+}
+ 
+#urlInputArea input:-ms-input-placeholder {
+    color: #999;
+    font-weight: normal;
+    font-style: italic;
+}   
+ 
+/* Form submit button */
+#searchFeedsButton
+{
+	float: left;
+}
+
+
+#urlInputArea button,
+#searchFeedsButton
+
+{
+    overflow: visible;
+    position: relative;
+    float: right;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    height: 40px;
+    width: 110px;
+    font: bold 15px/40px 'lucida sans', 'trebuchet MS', 'Tahoma';
+    color: #fff;
+    text-transform: uppercase;
+    background: #d83c3c;
+    border-radius: 0 3px 3px 0;     
+    text-shadow: 0 -1px 0 rgba(0, 0 ,0, .3);
+}  
+#searchFeedsButton
+{
+	float: left;
+}
+#searchFeedsButton : hover
+{
+	background: #e54040 ;
+}
+   
+#urlInputArea button:hover
+
+{    
+    background: #e54040;
+}  
+   
+#urlInputArea button:active,
+#urlInputArea button:focus{  
+    background: #c42f2f;
+    outline: 0;  
+}
+ 
+#urlInputArea button:before { /* left arrow */
+    content: '';
+    position: absolute;
+    border-width: 8px 8px 8px 0;
+    border-style: solid solid solid none;
+    border-color: transparent #d83c3c transparent;
+    top: 12px;
+    left: -6px;
+}
+ 
+#urlInputArea button:hover:before{
+    border-right-color: #e54040;
+}
+ 
+#urlInputArea button:focus:before,
+#urlInputArea button:active:before{
+        border-right-color: #c42f2f;
+}     
+ 
+#urlInputAreabutton::-moz-focus-inner { /* remove extra button spacing for Mozilla Firefox */
+    border: 0;
+    padding: 0;
+}    
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+li {
+	font: 200 20px/1.5 Helvetica, Verdana, sans-serif;
+	border-bottom: 1px solid #ccc;
+}
+
+li:last-child {
+	border: none;
+}
+
+li a {
+	text-decoration: none;
+	color: #000;
+	-webkit-transition: font-size 0.3s ease, background-color 0.3s ease;
+	-moz-transition: font-size 0.3s ease, background-color 0.3s ease;
+	-o-transition: font-size 0.3s ease, background-color 0.3s ease;
+	-ms-transition: font-size 0.3s ease, background-color 0.3s ease;
+	transition: font-size 0.3s ease, background-color 0.3s ease;
+	display: block;
+	width: 200px;
+}
+
+li a:hover {
+	font-size: 30px;
+	background: #f6f6f6;
+}
