@@ -36,11 +36,14 @@ public class UrlInfo implements Serializable
     private String description = "";
     private String keywords[];
     private List<WordOccurence> sortedWords;
-    private static final Logger loger = Logger.getLogger(Find.class.getName());
-
+    private static final Logger loger = Logger.getLogger(FindFeeds.class.getName());
+    private static final int numberOfSearchWords = 3;
+    private static Set<String> stopWords = new LinkedHashSet<String>();
     public UrlInfo(String url)
     {
 	Document doc;
+	stopWords = this.loadStopWords();
+	
 
 	try
 	{
@@ -48,24 +51,24 @@ public class UrlInfo implements Serializable
 	    doc = Jsoup.connect(url).get();
 	    this.title = doc.title();
 	    // get all meta elements and loop through them
-	    for (Element node : doc.getElementsByTag("meta"))
+	    for (Element element : doc.getElementsByTag("meta"))
 	    {
 		// get description from description meta tag
-		if (node.attr("name").contains("description"))
+		if (element.attr("name").contains("description"))
 		{
-		    this.description = node.attr("content");
+		    this.description = element.attr("content");
 		}
 
 		// get keywords from keywords meta tag
 		// and fill the array using the split() function
-		if (node.attr("name").contains("keywords"))
+		if (element.attr("name").contains("keywords"))
 		{
-		    this.keywords = node.attr("content").split(",");
+		    this.keywords = element.attr("content").split(",");
 		}
 	    }
 	    // populate the list with the words and their count in the opened
 	    // jsoup document using WordOccurence objects
-	    sortedWords = this.keywordsOccurence(doc);
+	    sortedWords = this.getKeywordsOccurence(doc);
 
 	}
 
@@ -84,7 +87,7 @@ public class UrlInfo implements Serializable
      *            JSOUP Document to analyze
      * @return List of WordOccurence objects
      */
-    private List<WordOccurence> keywordsOccurence(Document doc)
+    private List<WordOccurence> getKeywordsOccurence(Document doc)
     {
 
 	HashMap<String, Integer> wordsMap = new HashMap<String, Integer>();
@@ -140,8 +143,14 @@ public class UrlInfo implements Serializable
 	    // Sort the list in descending order
 	    // Sorting is done by the integer value wordCount
 	    // of the WordOccurence object
-	    Collections.sort(wordsCount, Collections.reverseOrder());
-
+	   
+	    Collections.sort(wordsCount);
+	    Collections.reverse(wordsCount);
+	   for(WordOccurence w : wordsCount)
+	   {
+	       System.out.println(w.key + " "+ w.count);
+	   }
+ 
 	    return wordsCount;
 	} else
 	{
@@ -149,17 +158,7 @@ public class UrlInfo implements Serializable
 	    return emptyList;
 	}
     }
-
-    /**
-     * Checks if a given word is in the text file containing the words to be
-     * ignored.
-     * 
-     * @param word
-     *            String to be checked
-     * @return true if String is contained in the text file.
-     */
-    public static boolean isInStopList(String word)
-
+    private Set<String> loadStopWords()
     {
 	Set<String> stopWords = new LinkedHashSet<String>();
 	BufferedReader reader = null;
@@ -189,9 +188,21 @@ public class UrlInfo implements Serializable
 	{
 	    loger.log(Level.SEVERE, "IOException", e);
 	}
+	
+	return stopWords;
+    }
 
+    /**
+     * Checks if a given word is in the text file containing the words to be
+     * ignored.
+     * 
+     * @param word
+     *            String to be checked
+     * @return true if String is contained in the text file.
+     */
+    public static boolean isInStopList(String word)
+    {
 	return stopWords.contains(word) ? true : false;
-
     }
 
     /**
@@ -207,6 +218,7 @@ public class UrlInfo implements Serializable
     public JSONObject getSimilarFeeds(String ipAddress) throws IOException,
 	    JSONException
     {
+	
 	StringBuilder searchQuery = new StringBuilder();
 	int i = 0;
 	if (!sortedWords.isEmpty())
@@ -215,9 +227,9 @@ public class UrlInfo implements Serializable
 	    // to be added to the searchQuery
 	    for (WordOccurence word : sortedWords)
 	    {
-		// only add the 3 first words of the sortedWords list to the
-		// searchQuery
-		if (i == 3)
+		// add the first n words where n<= nunumberOfSearchWords 
+		//to the searchQuery
+		if (i == numberOfSearchWords)
 		    break;
 
 		if (i == 0)
@@ -225,7 +237,7 @@ public class UrlInfo implements Serializable
 		    searchQuery.append(word.key);
 		} else
 		{
-		    searchQuery.append("%20" + word.key
+		    searchQuery.append("%20" + word.key);
 		}
 		i++;
 
