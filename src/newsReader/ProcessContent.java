@@ -1,79 +1,62 @@
 package newsReader;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.mortbay.util.ajax.JSON;
-
 import com.google.appengine.labs.repackaged.org.json.JSONArray;
 import com.google.appengine.labs.repackaged.org.json.JSONException;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
-import com.google.gson.JsonObject;
 
 public class ProcessContent extends HttpServlet
 {
 
     private static final long serialVersionUID = 1L;
+    private static final int MIN_MATCHES_COUNT = 3;
 
-    @SuppressWarnings("unchecked")
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	    throws IOException
     {
 	resp.setContentType("aplication/json");
-	PrintWriter writer = resp.getWriter();
-
 	FeedParser parser = new FeedParser();
 
 	HttpSession session = req.getSession();
-	ArrayList<String> feedLinks = (ArrayList<String>) session
-		.getAttribute("FeedLinks");
 	UrlInfo info = (UrlInfo) session.getAttribute("UrlInfo");
+	String feedUrlAddress = req.getParameter("url");
 
-	ArrayList<WordOccurence> links = new ArrayList<>();
-	ArrayList<FeedEntry> results;
+	ArrayList<FeedEntry> feedEntries = parser
+		.getFeedEntries(feedUrlAddress);
+	ArrayList<WordOccurence> links = sortLinksByDescription(feedEntries,
+		info);
 
-	for (String link : feedLinks)
-	{
-
-	    results = parser.getFeedEntries(link);
-	    ArrayList<WordOccurence> linksOrderedByMatchingKeywords = sortByContent(
-		    results, info);
-	    for (WordOccurence wo : linksOrderedByMatchingKeywords)
-	    {
-		links.add(wo);
-	    }
-
-	}
-
-	Collections.sort(links, Collections.reverseOrder());
-
-	JSONArray linksArray = new JSONArray();
+	JSONArray jsonResponse = new JSONArray();
 	for (WordOccurence wo : links)
 	{
 
-	    if (wo.count > 3)
+	    if (wo.count > MIN_MATCHES_COUNT)
 	    {
-
-		linksArray.put(wo.key);
+		JSONObject obj = new JSONObject();
+		try
+		{
+		    obj.put("url", wo.key);
+		    obj.put("count", wo.count);
+		    jsonResponse.put(obj);
+		} catch (JSONException e)
+		{
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
 
 	    }
-	    /**
-	     * writer.println(wo.key); writer.println("<br/>
-	     * "); writer.println(wo.count);
-	     **/
 
 	}
 
-	resp.getWriter().write(linksArray.toString());
+	resp.getWriter().write(jsonResponse.toString());
 
     }
 
@@ -92,41 +75,25 @@ public class ProcessContent extends HttpServlet
      * @return List of WordOccurence objects containing the matching words and
      *         the corresponding words count
      */
-    private ArrayList<WordOccurence> sortByContent(
-	    ArrayList<FeedEntry> entries, UrlInfo info)
+    private ArrayList<WordOccurence> sortLinksByDescription(
+	    ArrayList<FeedEntry> FeedEntries, UrlInfo searchUrl)
     {
-	HashMap<String, Integer> contentMap = new HashMap<>();
+
 	ArrayList<WordOccurence> linkList = new ArrayList<>();
 
 	// add the feed entry link and the keywords that match the description
-	// of the entered url ,and enter them in a map
-	for (FeedEntry e : entries)
-
+	// of the entered url ,and enter them in a lit
+	for (FeedEntry feedEntry : FeedEntries)
 	{
-	    int matches = matchingKeywors(info.getDescription(),
-		    e.getDescription());
-
-	    String link = e.getLink();
-
-	    // avoid entering same keys and overwriting the value
-	    if (!contentMap.containsKey(link))
-	    {
-		contentMap.put(link, matches);
-	    }
-
+	    String link = feedEntry.getLink();
+	    int matches = getMatchingWordsCount(searchUrl.getDescription(),
+		    feedEntry.getDescription());
+	    linkList.add(new WordOccurence(link, matches));
 	}
 
-	// get the key/value pairs from the map and create plain objects
-	// that can be ordered in a collection with Collections.Sort
-	for (Map.Entry<String, Integer> entry : contentMap.entrySet())
-	{
-	    linkList.add(new WordOccurence(entry.getKey(), entry.getValue()));
-	}
-
-	Collections.sort(linkList, Collections.reverseOrder());
-
+	Collections.sort(linkList);
+	Collections.reverse(linkList);
 	return linkList;
-
     }
 
     /**
@@ -138,28 +105,31 @@ public class ProcessContent extends HttpServlet
      *            String from the Feed entry(Title or Description)
      * @return Integer - matching words count
      */
-    private int matchingKeywors(String urlData, String feedData)
+    private int getMatchingWordsCount(String urlDescription,
+	    String feedEntryDescription)
     {
-	String[] urlWords = urlData.split("[^a-zA-Z]+");
-	String[] feedWords = feedData.split("[^a-zA-Z]+");
-	int MatchingWordsCount = 0;
+	String[] urlDescriptionWords = urlDescription.split("[^a-zA-Z]+");
+	String[] feedDescriptionWords = feedEntryDescription
+		.split("[^a-zA-Z]+");
+	int matchingWordsCount = 0;
 
-	for (int i = 0; i < urlWords.length; i++)
+	for (int i = 0; i < urlDescriptionWords.length; i++)
 	{
-	    if (UrlInfo.isInStopList(urlWords[i]))
+	    if (UrlInfo.isInStopList(urlDescriptionWords[i]))
 	    {
 		continue;
 	    }
 
-	    for (int j = 0; j < feedWords.length; j++)
+	    for (int j = 0; j < feedDescriptionWords.length; j++)
 	    {
-		if (urlWords[i].equalsIgnoreCase(feedWords[j]))
+		if (urlDescriptionWords[i]
+			.equalsIgnoreCase(feedDescriptionWords[j]))
 		{
-		    MatchingWordsCount++;
+		    matchingWordsCount++;
 		}
 	    }
 	}
 
-	return MatchingWordsCount;
+	return matchingWordsCount;
     }
 }
