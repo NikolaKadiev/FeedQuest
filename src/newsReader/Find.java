@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
 import newsReader.UrlInfo;
@@ -18,9 +17,10 @@ import com.google.appengine.labs.repackaged.org.json.JSONObject;
 import com.google.gson.Gson;
 
 @SuppressWarnings("serial")
-public class Find extends HttpServlet
+public class FindFeeds extends HttpServlet
 {
-    private static final Logger loger = Logger.getLogger(Find.class.getName());
+    private static final Logger loger = Logger.getLogger(FindFeeds.class
+	    .getName());
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	    throws IOException
@@ -42,43 +42,38 @@ public class Find extends HttpServlet
 		@SuppressWarnings("unused")
 		URL testUrlValidity = new URL(urlAddress);
 
-		UrlInfo info = new UrlInfo(urlAddress);
+		UrlInfo urlInfo = new UrlInfo(urlAddress);
 
-		// access the Google Feeds API(using the searchFeeds method) and
+		// access the Google Feeds API(using the getSimilarFeeds() method) and
 		// get the response data
-		JSONObject jsonObject = info.getSimilarFeeds(req
+		JSONObject feedsApiResponse = urlInfo.getSimilarFeeds(req
 			.getRemoteAddr());
 
-		if (!jsonObject.has("errorMessage"))
+		if (!feedsApiResponse.has("errorMessage"))
 		{
-		    JSONObject responseData = jsonObject
+		    JSONObject responseData = feedsApiResponse
 			    .getJSONObject("responseData");
 		    JSONArray entries = responseData.getJSONArray("entries");
 
 		    // loop through the entries array and get the url from each
-		    // JSON
-		    // object
-		    // and add it to the links list
+		    // JSON object and add it to the links list
 		    for (int i = 0; i < entries.length(); i++)
 		    {
-			JSONObject obj = entries.getJSONObject(i);
-			links.add(obj.getString("url"));
+			JSONObject feedEntry = entries.getJSONObject(i);
+			links.add(feedEntry.getString("url"));
 
 		    }
 		    String json = new Gson().toJson(links);
 		    resp.getWriter().write(json);
 		} else
 		{
-		    JSONArray array = jsonObject.getJSONArray("errorMessage");
-		    resp.getWriter().write(array.toString());
+		    JSONArray errorMessage = feedsApiResponse
+			    .getJSONArray("errorMessage");
+		    resp.getWriter().write(errorMessage.toString());
 		}
 
-		req.setAttribute("FeedLinks", links);
-
 		HttpSession session = req.getSession();
-		session.setAttribute("FeedLinks", links);
-		session.setAttribute("UrlInfo", info);
-
+		session.setAttribute("UrlInfo", urlInfo);
 
 	    }
 
@@ -88,10 +83,6 @@ public class Find extends HttpServlet
 		resp.sendRedirect("errorPage.html");
 	    }
 
-	    /**
-	     * catch (ServletException e) { loger.log(Level.SEVERE,
-	     * "ServletException", e); resp.sendRedirect("errorPage.html"); }
-	     **/
 	    catch (MalformedURLException e)
 	    {
 		loger.log(Level.SEVERE, "MalformedUrl", e);

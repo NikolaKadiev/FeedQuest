@@ -42,7 +42,6 @@ $(document).ready(function () {
                     var $ul = $('<ul>').appendTo($('#searchResults'));
 
                     $.each(jsonResponse, function (i, val) {
-                        console.log(i, val);
                         var $li = $('<li>').text(val.url).appendTo($ul);
                         var urlLink = $("<a>").appendTo($li);
                         urlLink.text("Open link");
